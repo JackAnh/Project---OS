@@ -8,7 +8,7 @@
 
 STARTUPINFO si[100];
 PROCESS_INFORMATION pi[100];
-char name[10][20];
+char name[10][25];
 int n = 0;
 
 void SHOWMENU() {
@@ -52,7 +52,7 @@ void DIRI() {
         printf("Invalid file handle.\n");
     }
     else {
-//        printf("First file name is %s\n", FindFileData.cFileName);
+        printf("First file name is %s\n", FindFileData.cFileName);
         while(FindNextFile(hFind, &FindFileData) != 0){
             printf("Next file name is %s\n", FindFileData.cFileName);
         }
@@ -79,7 +79,6 @@ void LIST(){
     for (int i = 1;i <= n; i++) {
         printf("%2d     %8d        %9s\n", i, pi[i].dwProcessId, name[i]);
     }
-    printf("\n");
 }
 
 void KILL_ID(int id){
@@ -114,12 +113,15 @@ void KILL_ALL(){
 }
 
 void PAUSE(int id) {
+    int flag = 0;
     for (int i = 1;i <= n; i++) {
         if (id == pi[i].dwProcessId){
+            ++flag;
             SuspendThread(pi[i].hThread);
             break;
         }
     }
+    if(flag == 0) printf("Not existed");
 }
 
 void CONTINUE(int id) {
@@ -164,6 +166,7 @@ void BAT() {
             }
             filePath[indexFilePath] = '\0';
             DIR_BAT(filePath);
+            printf("\n");
         }
         else if (!strcmp(chooseOfBat, "help")){  // OK
             SHOWMENU();
@@ -201,6 +204,7 @@ void BAT() {
         }
         else if (!strcmp(chooseOfBat, "list")){  //OK
             LIST();
+            printf("\n");
         }
         else if (!strcmp(chooseOfBat, "kill_all")){  // OK
             KILL_ALL();
@@ -230,10 +234,10 @@ void OPEN() {
         CreateProcess(file,NULL,NULL,NULL,FALSE,CREATE_NEW_CONSOLE,NULL,NULL,&si[n],&pi[n]);
     }
     else if (!strcmp(mode, "foreground")) {
-        while(file[count] != '\0') {
-            name[n][count] = file[count];
-            ++count;
-        }
+//        while(file[count] != '\0') {
+//            name[n][count] = file[count];
+//            ++count;
+//        }
         STARTUPINFO si;
         PROCESS_INFORMATION pi;
         ZeroMemory(&si, sizeof(si));
@@ -292,10 +296,10 @@ void OPEN_BAT(char *file, char *mode) {
         CreateProcess(file,NULL,NULL,NULL,FALSE,CREATE_NEW_CONSOLE,NULL,NULL,&si[n],&pi[n]);
     }
     else if (!strcmp(mode, "foreground")) {
-        while(file[count] != '\0') {
-            name[n][count] = file[count];
-            ++count;
-        }
+//        while(file[count] != '\0') {
+//            name[n][count] = file[count];
+//            ++count;
+//        }
         ZeroMemory(&si[n], sizeof(si[n]));
         si[n].cb = sizeof(si[n]);
         ZeroMemory(&pi[n], sizeof(pi[n]));
@@ -369,6 +373,11 @@ int main(){
             printf("\n");
         }
         else if (!strcmp(choose, "exit")) {
+            for (int i = 1;i <= n; i++) {
+                TerminateProcess(pi[i].hProcess, 1);
+                CloseHandle(pi[i].hProcess);
+                CloseHandle(pi[i].hThread);
+            }
             exit(0);
             printf("\n");
         }
@@ -422,12 +431,18 @@ int main(){
             if(fp1==NULL)
             {
                 printf("File could not open!!");
-                return 0;
+                printf("\n\n");
+                continue;
             }
 
             printf("> Destination file: "); gets(desName);
             fp2=fopen(desName,"w");
 
+            if(fp2 == NULL){
+                printf("File could not open!!");
+                printf("\n\n");
+                continue;
+            }
             while((ch=getc(fp1))!=EOF)
             putc(ch,fp2);
             printf("%s is created and copied\n\n", desName);
